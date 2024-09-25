@@ -1,10 +1,42 @@
-import mongoose from "mongoose";
-import {DB_NAME} from "./constants.js"
 
+// already mongoose is imported in inner index.js
+// import mongoose from "mongoose";
+// import {DB_NAME} from "./constants.js"
+
+// require('dotenv').config({path : './env'})
+import dotenv from "dotenv";
+import connectDB from "./db/index.js";
+
+dotenv.config({
+    path: './env'
+})
+
+
+
+
+
+
+
+
+// method 2
+connectDB();
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*   1st method to connnect database directly in index.js  makes it congested ----->
+// special type of fn declaration " ifis" to define and call function simultaenously
 import express from "express"
 const app= express()
-
-// special type of fn declaration " ifis" to define and call function simultaenously
 ( async ()=>{
     try{
        await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
@@ -25,3 +57,4 @@ const app= express()
     
 
 }) ()
+*/
