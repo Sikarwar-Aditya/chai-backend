@@ -6,6 +6,7 @@
 // require('dotenv').config({path : './env'})
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
+import {app} from "./app.js"
 
 dotenv.config({
     path: './env'
@@ -13,13 +14,21 @@ dotenv.config({
 
 
 
-
-
-
-
-
 // method 2
-connectDB();
+connectDB()
+.then( ()=>{
+    app.on("error", (error)=>{
+        console.log("MongoDB is connected but express can't talk ", error);
+    })
+
+    app.listen(process.env.PORT || 8000, ()=>{
+        console.log(`Server is listening at port : ${process.env.PORT}`);
+    })
+
+})
+.catch((err)=>{
+    console.log("MongoDB connection is failed !!", err);
+})
 
 
 
@@ -34,7 +43,7 @@ connectDB();
 
 
 /*   1st method to connnect database directly in index.js  makes it congested ----->
-// special type of fn declaration " ifis" to define and call function simultaenously
+// special type of fn declaration " ifi " to define and call function simultaenously
 import express from "express"
 const app= express()
 ( async ()=>{
