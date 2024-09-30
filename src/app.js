@@ -18,9 +18,19 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 
 // Parse cookies from incoming requests
-app.use(express.cookieParser());
+app.use(cookieParser());
 
 
+
+// routes import
+import userRouter from "./routes/user.routes.js"
+
+// routes declaration------------->
+// we will use() method instead of get() method becuase here controllers ans routes are in different-2 folders so we need a middleware..
+
+app.use("/api/v1/users",userRouter) ;
+
+// url--> http://localhost:8000/api/v1/users/register
 
 
 // also a method to export other than export default method
