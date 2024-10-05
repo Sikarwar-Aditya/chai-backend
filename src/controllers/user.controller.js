@@ -20,6 +20,9 @@ const registerUser= asyncHandler(async (req,res)=>{
 // 1--> taking details from user
     const {fullName, email,username,password}= req.body;
     console.log("email : ",email);
+    console.log("username : ",username);
+    console.log("password : ",password);
+    console.log("fullName : ",fullName);
 
 // 2--> validation checking
 
@@ -37,7 +40,7 @@ const registerUser= asyncHandler(async (req,res)=>{
         }
 // 3--> checking user exits or not
         // here user model is made on mongoose so it can directly check our queries in database
-    const existedUser= User.findOne({
+    const existedUser= await User.findOne({
         $or : [{ username },{ email }]
     })
     if(existedUser){
@@ -52,12 +55,11 @@ const registerUser= asyncHandler(async (req,res)=>{
         throw new ApiError(400, "avatar is required");
     }
     // 5---->
-    
     const avatar= await uploadOnCloudinary(avatarLocalPath);
     const coverImage= await uploadOnCloudinary(coverImageLocalPath);
     
-    if(avatar){
-        throw new ApiError(400, "avatar is required");
+    if(!avatar){
+        throw new ApiError(400, "--avatar is required");
     }
 // 6--->
     const user = await User.create(

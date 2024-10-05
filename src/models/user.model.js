@@ -52,7 +52,8 @@ const userSchema= new mongoose.Schema(
 // dont use arrow function here becuase that doesnt give reference we need reference to interact with user variables
 
 userSchema.pre("save", async function (next){
-    if(!this.password.ismodified("password")) return;
+    // wrong Notation-- if(!this.password.ismodified("password")) return next();
+    if(!this.isModified("password")) return next();
     // to ensure first password must be hashed before moving to save  
     this.password=  await bcrypt.hash(this.password,10)
     next()
