@@ -8,21 +8,22 @@ import cookieParser from "cookie-parser";
 
 const generateAccessAndRefereshToken= async (userId)=>{
     try{
-        const user = await User.findById(UserId);
-        const accessToken= user.generateAccessToken();
-        const refreshToken= user.generateRefreshToken();
+        const user = await User.findById(userId);
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
 
         // generated token is added to user 
         user.refreshToken= refreshToken;
 
         // saving this to database also
-        user.save({ validateBeforeSave : false });
+        await user.save({ validateBeforeSave : false });
 
         return {accessToken, refreshToken};
 
     }
     catch(error){
-        throw new ApiError(500, "something went wrong while generatin access and refress tokens");
+        console.error("Error generating tokens:", error);
+        throw new ApiError(500, "something went wrong while generating access and refresh tokens");
     }
 }
 
@@ -130,9 +131,9 @@ const loginUser= asyncHandler(async (req, res)=>{
     // 6. send cookie---> to send these tokens
 
     //1.  take data
-    const{username, emial, password}= req.body;
+    const{username, email, password}= req.body;
     //2. login basis
-    if(!username || !email) {
+    if(!(username || email)) {
         throw new ApiError(400, "username or email is required");
     }
     //3. find the user
