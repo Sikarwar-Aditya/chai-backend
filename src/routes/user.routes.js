@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser,loginUser,logoutUser } from "../controllers/user.controller.js";
+import { registerUser,loginUser,logoutUser,refreshAccessToken } from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -21,7 +21,8 @@ router.route("/register").post(
 router.route("/login").post(loginUser);
 
 // secured routes
-router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/logout").post(verifyJWT, logoutUser); // middleware used because we need user to get refresh token to reset it 
+router.route("/refresh-token").post(refreshAccessToken);//no middlware is used becoz user is not required in req
 
 
 
