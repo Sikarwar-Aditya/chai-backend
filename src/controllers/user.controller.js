@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 
 const generateAccessAndRefereshToken= async (userId)=>{
@@ -381,6 +382,142 @@ const updateUserCoverImage= asyncHandler(async (req, res)=>{
 
 })
 
+const getUserChannelProfile= asyncHandler(async(req,res)=>{
+    const {username} = req.params;
+    if(!username?.trim()){
+        throw new ApiError(400,"username is missing");
+    }
+    // it return an array
+    const channel= await User.aggregate(
+        [
+            {
+                $match:{
+                    usermane : username?.toLowerCase()
+                }
+            },
+            {
+                // Total subscribers 
+                $lookup :{
+                    // as we know in dataBase all becomes lowercase and plural
+                    // Subscription ---> subscriptions
+                    from:"subscriptions",
+                    localField:"_id",
+                    foreignField:"channel",
+                    as:"subscribers"
+                }
+            },
+            {   // subscribed to 
+                $lookup:{
+                    from:"subscriptions",
+                    localField:"_id",
+                    foreignField:"subscriber",
+                    as:"subscribedTo"
+                }
+            },
+            {
+                $addFields:{
+                    subscribersCount:{
+                        $size: "$subscribers"
+
+                    },
+                    channelsSubscribedToCount: {
+                        $size: "$subscribedTo"
+                    },
+                    isSubscribed:{
+                        $cond:{
+                            $if: {$in: [req.user?._id,"$subscribers.subscriber"]},
+                            then : true, else : false
+                        }
+                    }
+
+                }
+            },
+            {
+                $project:{
+                fullName: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1
+                }
+            }
+        ]
+    )
+
+    if(!channel?.length){
+        throw new ApiError(404,"channel not exists")
+    }
+
+    return res
+    .status(200)
+    .json(200, channel[0], "user channel fetched successfully.")
+
+
+})
+
+const getWatchHistory= asyncHandler(async(req, res)=>{
+    // here user will be an array
+    const user= User.aggregate(
+        [
+            {
+                $match: {
+                    // in mongoDb id is stored as ObjectId(<string>) but our id we get generally string because mongoose do all required operations in btw but here we mongoose will not do self
+
+                    _id: new mongoose.Types.ObjectId(user.req?._id)
+                }
+            },
+            {
+                $lookup:{
+                    from: "videos",
+                    localField:"WatchHistory",
+                    foreignField:"_id",
+                    as:"watchHistory",
+                    // used nested pipeline because owner of video is an user so we need to do lookup again --- called nested pipeline
+                    pipeline:[
+                        {
+                            $lookup:{
+                                from:"users",
+                                localField:"owner",
+                                foreignField:"_id",
+                                as:"owner",
+                                // here we used other nested pipeline to get only required data of owner of video
+                                pipeline:[
+                                    {
+                                        $project:{
+                                            fullName:1,
+                                            username:1,
+                                            avatar:1
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        // we added this extra to conver array named "owner" to object named "owner" to access direct its values just by "."
+                        {
+                          $addFields:{
+                            owner:{
+                                $first: "$owner"
+                            }
+                          }  
+                        }
+                    ]
+
+
+                }
+            }
+        ]
+    )
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,user[0].getWatchHistory),"watch history fetched successfully"
+    )
+})
+
     export {
         registerUser,
         loginUser,
@@ -390,6 +527,8 @@ const updateUserCoverImage= asyncHandler(async (req, res)=>{
         getCurrentUser,
         updateAccountDetails,
         updateUserAvatar,
-        updateUserCoverImage
+        updateUserCoverImage,
+        getUserChannelProfile,
+        getWatchHistory
 
     };
