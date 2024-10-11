@@ -361,7 +361,7 @@ const updateUserCoverImage= asyncHandler(async (req, res)=>{
     }
 
     const coverImage= await uploadOnCloudinary(CoverImageLocalPath);
-    // return avatar is object 
+    // returned avatar is object 
 
     if(!coverImage.url){
         throw new ApiError(400, "Error while uploading coverImage file on cloudinary")
